@@ -99,6 +99,7 @@ releases:
     chart: ./charts/backend
     needs:
       - production/database
+      - production/platform
     values:
       - values/backend.yaml.gotmpl
 
@@ -109,3 +110,17 @@ releases:
       - production/backend
     values:
       - values/frontend.yaml.gotmpl
+
+  # ------------------------- cluster configuration -------------------------
+  # ExternalSecrets (db-credentials, jwt-secret), Prometheus alerts, Karpenter NodePools.
+  # Needs the CRDs created by the three operators below. The backend waits for it,
+  # because the backend pods need the Secrets this release creates.
+  - name: platform
+    namespace: production
+    chart: ./charts/platform
+    needs:
+      - external-secrets/external-secrets
+      - monitoring/kube-prometheus-stack
+      - karpenter/karpenter
+    values:
+      - values/platform.yaml.gotmpl

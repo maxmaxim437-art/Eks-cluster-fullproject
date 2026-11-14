@@ -18,3 +18,11 @@ roles:
 
 metricsServer:
   enabled: false
+
+# AWS Secrets Manager secret names (created in the infrastructure phase)
+secrets:
+  dbRemoteKey: arch-planner/production/db-credentials     # JSON: username, password, host, port
+  jwtRemoteKey: arch-planner/production/jwt-secret
+
+# IAM role of the EC2 nodes that Karpenter creates
+karpenterNodeRole: arch-planner-karpenter-node

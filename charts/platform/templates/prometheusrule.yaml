@@ -1,0 +1,36 @@
+{{- if .Values.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-alerts
+  labels:
+    {{- include "platform.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: arch-planner.rules
+      rules:
+        - alert: BackendHighErrorRate
+          expr: |
+            sum(rate(http_request_duration_seconds_count{status_code=~"5.."}[5m]))
+              / sum(rate(http_request_duration_seconds_count[5m])) > {{ .Values.alerts.errorRate.threshold }}
+          for: {{ .Values.alerts.errorRate.for }}
+          labels:
+            severity: warning
+          annotations:
+            summary: Backend 5xx error rate is above the threshold
+            description: More than {{ mulf .Values.alerts.errorRate.threshold 100 }} percent of backend requests failed with 5xx for {{ .Values.alerts.errorRate.for }}.
+        - alert: BackendDown
+          expr: up{job={{ .Values.alerts.backend.job | quote }}} == 0
+          for: {{ .Values.alerts.backend.for }}
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend target is down in Prometheus
+        - alert: DatabaseDown
+          expr: pg_up == 0
+          for: {{ .Values.alerts.database.for }}
+          labels:
+            severity: critical
+          annotations:
+            summary: The PostgreSQL exporter reports the database is down
+{{- end }}

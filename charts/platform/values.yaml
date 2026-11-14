@@ -1,0 +1,55 @@
+region: eu-central-1
+clusterName: arch-planner
+
+# ----- Section 9: ExternalSecrets (AWS Secrets Manager -> Kubernetes Secrets) -----
+externalSecrets:
+  # Older operator versions use external-secrets.io/v1beta1
+  apiVersion: external-secrets.io/v1
+  storeName: aws-secrets-manager
+  refreshInterval: 1h
+  db:
+    enabled: true
+    secretName: db-credentials          # the Secret the backend and the backup job read
+    remoteKey: arch-planner/production/db-credentials   # JSON in AWS: username, password, host, port
+    keys: [username, password, host, port]
+  jwt:
+    enabled: true
+    secretName: jwt-secret
+    remoteKey: arch-planner/production/jwt-secret       # plain-text secret in AWS
+    targetKey: JWT_SECRET
+
+# ----- Section 5: alert rules (picked up by Prometheus automatically) -----
+alerts:
+  enabled: true
+  errorRate:
+    threshold: 0.05      # 5%
+    for: 5m
+  backend:
+    job: backend         # the Prometheus "job" label = the backend Service name
+    for: 2m
+  database:
+    for: 2m
+
+# ----- Section 10: Karpenter -----
+karpenter:
+  enabled: true
+  nodeClassName: default
+  nodeRole: arch-planner-karpenter-node    # IAM role of the nodes Karpenter creates
+  discoveryTag: ""                         # empty = clusterName (tag karpenter.sh/discovery on subnets + security group)
+  amiAlias: al2023@latest                  # fine for study; pin a version in production
+  nodePools:
+    app:
+      labels: { role: app }
+      taints: []
+      categories: ["c", "m", "r"]
+      capacityTypes: ["spot", "on-demand"]
+      limits: { cpu: "20", memory: 80Gi }
+    db:
+      labels: { role: db }
+      taints:
+        - key: workload
+          value: database
+          effect: NoSchedule
+      categories: ["r"]                    # memory-optimized only
+      capacityTypes: ["on-demand"]         # never spot for the database
+      limits: { cpu: "8", memory: 64Gi }

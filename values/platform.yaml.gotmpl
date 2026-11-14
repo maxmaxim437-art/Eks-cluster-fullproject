@@ -1,0 +1,11 @@
+region: {{ .Values.region }}
+clusterName: {{ .Values.clusterName }}
+
+externalSecrets:
+  db:
+    remoteKey: {{ .Values.secrets.dbRemoteKey }}
+  jwt:
+    remoteKey: {{ .Values.secrets.jwtRemoteKey }}
+
+karpenter:
+  nodeRole: {{ .Values.karpenterNodeRole }}
