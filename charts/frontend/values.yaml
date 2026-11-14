@@ -1,0 +1,60 @@
+replicaCount: 2
+
+image:
+  repository: <your-registry>/frontend
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  className: alb
+  host: app.example.com
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    # Section 8 (ExternalDNS):
+    # external-dns.alpha.kubernetes.io/hostname: app.example.com
+
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits:   { cpu: 300m, memory: 256Mi }
+
+readinessProbe:
+  httpGet: { path: /, port: http }
+  initialDelaySeconds: 5
+  periodSeconds: 10
+livenessProbe:
+  httpGet: { path: /, port: http }
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: role
+              operator: In
+              values: ["app"]
+tolerations: []
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  scaleUpStabilizationSeconds: 60
+  scaleDownStabilizationSeconds: 300
+
+metrics:
+  enabled: false
+  path: /metrics
+  interval: 30s
