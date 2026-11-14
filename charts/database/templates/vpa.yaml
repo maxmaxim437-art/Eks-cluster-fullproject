@@ -1,0 +1,19 @@
+{{- if .Values.vpa.enabled }}
+{{- /* Bitnami names the (standalone) StatefulSet <release>-postgresql */}}
+{{- $target := .Values.vpa.targetName | default (ternary .Release.Name (printf "%s-postgresql" .Release.Name) (contains "postgresql" .Release.Name)) }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ $target }}
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: {{ $target }}
+  updatePolicy:
+    # "Off" = recommendations only. A DB restart must never be a surprise.
+    updateMode: {{ .Values.vpa.updateMode | quote }}
+{{- end }}

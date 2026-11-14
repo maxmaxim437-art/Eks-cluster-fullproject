@@ -1,0 +1,7 @@
+# Recommendation-only mode: we read the recommendations and update values.yaml by hand.
+recommender:
+  enabled: true
+updater:
+  enabled: false
+admissionController:
+  enabled: false

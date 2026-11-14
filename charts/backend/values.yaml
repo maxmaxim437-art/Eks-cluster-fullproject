@@ -79,6 +79,11 @@ autoscaling:
 
 # server.js has no /metrics yet (Section 5: add prom-client, then enable)
 metrics:
-  enabled: false
+  enabled: true
   path: /metrics
   interval: 30s
+
+# Vertical Pod Autoscaler - recommendations only (Section 6.3)
+vpa:
+  enabled: true
+  updateMode: "Off"

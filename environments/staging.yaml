@@ -1,0 +1,4 @@
+# Only what differs from default.yaml
+domain: staging.example.com
+frontendTag: staging
+backendTag: staging

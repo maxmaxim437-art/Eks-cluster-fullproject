@@ -1,0 +1,7 @@
+settings:
+  clusterName: {{ .Values.clusterName }}
+  interruptionQueue: {{ .Values.clusterName }}     # SQS queue name (infrastructure phase)
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.awsAccountId }}:role/{{ .Values.roles.karpenter }}
+# Karpenter itself must run on a node it does not manage (small node group) - decided in the infra phase.

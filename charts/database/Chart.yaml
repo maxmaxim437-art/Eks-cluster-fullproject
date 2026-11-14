@@ -1,0 +1,12 @@
+apiVersion: v2
+name: database
+description: Wrapper chart - Bitnami PostgreSQL + S3 backup CronJob for the Architecture Planner
+type: application
+version: 0.1.0
+appVersion: "17"
+dependencies:
+  - name: postgresql
+    # Chart line 16.x = PostgreSQL 17. Pinned to an exact version on purpose:
+    # the images for this version still exist in the bitnamilegacy repository (see values.yaml).
+    version: "16.7.0"
+    repository: oci://registry-1.docker.io/bitnamicharts

@@ -58,3 +58,8 @@ metrics:
   enabled: false
   path: /metrics
   interval: 30s
+
+# Vertical Pod Autoscaler - recommendations only (Section 6.3)
+vpa:
+  enabled: true
+  updateMode: "Off"

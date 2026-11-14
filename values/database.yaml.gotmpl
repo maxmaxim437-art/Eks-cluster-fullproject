@@ -1,0 +1,6 @@
+backup:
+  bucket: {{ .Values.backupBucket }}
+  region: {{ .Values.region }}
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.awsAccountId }}:role/{{ .Values.roles.dbBackup }}

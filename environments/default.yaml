@@ -1,0 +1,20 @@
+# Everything that differs between accounts / clusters / environments lives here.
+awsAccountId: "123456789012"        # TODO: your AWS account id
+region: eu-central-1                # TODO: your region
+clusterName: arch-planner
+domain: example.com                 # TODO: your Route53 hosted zone
+
+frontendTag: v1.0.0
+backendTag: v1.0.0
+
+backupBucket: arch-planner-db-backups-123456789012   # S3 bucket names are global
+
+# IAM role names (created later, in the infrastructure phase) - used for IRSA annotations
+roles:
+  externalDns: arch-planner-external-dns
+  externalSecrets: arch-planner-external-secrets
+  karpenter: arch-planner-karpenter
+  dbBackup: arch-planner-db-backup
+
+metricsServer:
+  enabled: false

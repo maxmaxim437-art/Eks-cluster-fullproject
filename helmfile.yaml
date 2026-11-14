@@ -1,0 +1,111 @@
+# =====================================================================
+# EKS Production Stack - one declarative file for the whole cluster
+#   helmfile diff   -> preview
+#   helmfile sync   -> install / upgrade everything in dependency order
+#   helmfile -e staging sync -> same, with the staging overrides
+# =====================================================================
+
+environments:
+  default:
+    values:
+      - environments/default.yaml
+  staging:
+    values:
+      - environments/default.yaml
+      - environments/staging.yaml
+
+---
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: external-secrets
+    url: https://charts.external-secrets.io
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns/
+  - name: fairwinds-stable
+    url: https://charts.fairwinds.com/stable
+  - name: metrics-server
+    url: https://kubernetes-sigs.github.io/metrics-server/
+  - name: karpenter
+    url: public.ecr.aws/karpenter
+    oci: true
+
+helmDefaults:
+  wait: true
+  timeout: 600
+  createNamespace: true
+  cleanupOnFail: true
+
+# TODO (before the first real deploy): pin a `version:` on every remote chart.
+#   helm search repo <repo>/<chart> --versions | head
+
+releases:
+  # ------------------------- platform / infra -------------------------
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    values:
+      - values/monitoring.yaml
+
+  - name: external-secrets
+    namespace: external-secrets
+    chart: external-secrets/external-secrets
+    values:
+      - values/external-secrets.yaml.gotmpl
+
+  - name: external-dns
+    namespace: external-dns
+    chart: external-dns/external-dns
+    values:
+      - values/external-dns.yaml.gotmpl
+
+  - name: vpa
+    namespace: vpa
+    chart: fairwinds-stable/vpa
+    values:
+      - values/vpa.yaml
+
+  - name: karpenter
+    namespace: karpenter
+    chart: karpenter/karpenter
+    values:
+      - values/karpenter.yaml.gotmpl
+
+  # EKS usually ships metrics-server. Enable with metricsServer.enabled: true
+  # in environments/default.yaml only if `kubectl top nodes` does not work.
+  - name: metrics-server
+    namespace: kube-system
+    chart: metrics-server/metrics-server
+    condition: metricsServer.enabled
+    values:
+      - values/metrics-server.yaml
+
+  # ---------------------------- application ----------------------------
+  # database -> backend -> frontend.
+  # The database also needs the ServiceMonitor / VPA CRDs and the secrets operator,
+  # so those releases are listed in `needs` too.
+  - name: database
+    namespace: production
+    chart: ./charts/database
+    needs:
+      - external-secrets/external-secrets
+      - monitoring/kube-prometheus-stack
+      - vpa/vpa
+    values:
+      - values/database.yaml.gotmpl
+
+  - name: backend
+    namespace: production
+    chart: ./charts/backend
+    needs:
+      - production/database
+    values:
+      - values/backend.yaml.gotmpl
+
+  - name: frontend
+    namespace: production
+    chart: ./charts/frontend
+    needs:
+      - production/backend
+    values:
+      - values/frontend.yaml.gotmpl

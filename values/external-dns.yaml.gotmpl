@@ -1,0 +1,14 @@
+provider:
+  name: aws
+sources:
+  - ingress
+policy: sync                       # creates AND deletes records (use upsert-only to never delete)
+txtOwnerId: {{ .Values.clusterName }}
+domainFilters:
+  - {{ .Values.domain }}
+env:
+  - name: AWS_DEFAULT_REGION
+    value: {{ .Values.region }}
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.awsAccountId }}:role/{{ .Values.roles.externalDns }}

@@ -1,0 +1,8 @@
+image:
+  repository: {{ .Values.awsAccountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/arch-planner/frontend
+  tag: {{ .Values.frontendTag | quote }}
+
+ingress:
+  host: app.{{ .Values.domain }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: app.{{ .Values.domain }}

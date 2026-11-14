@@ -1,0 +1,5 @@
+image:
+  repository: {{ .Values.awsAccountId }}.dkr.ecr.{{ .Values.region }}.amazonaws.com/arch-planner/backend
+  tag: {{ .Values.backendTag | quote }}
+
+# The Ingress stays disabled: the frontend's nginx proxies /api/ to this service.

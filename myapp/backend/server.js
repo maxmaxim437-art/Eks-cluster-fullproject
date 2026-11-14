@@ -4,6 +4,7 @@ import pg from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
+import client from 'prom-client';
 import { randomUUID, randomBytes } from 'node:crypto';
 
 const PORT = process.env.PORT || 3000;
@@ -122,6 +123,29 @@ const app = express();
 app.set('trust proxy', TRUST_PROXY);
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+
+/* ---------- Prometheus metrics (scraped by the ServiceMonitor) ---------- */
+client.collectDefaultMetrics();
+const httpDuration = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 5],
+});
+app.use((req, res, next) => {
+  const end = httpDuration.startTimer();
+  res.on('finish', () => end({
+    method: req.method,
+    route: req.route ? req.baseUrl + req.route.path : 'unmatched',   // route pattern, not the raw URL
+    status_code: res.statusCode,
+  }));
+  next();
+});
+// Not reachable from outside: nginx only proxies /api/ to the backend.
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 app.get('/healthz', (_req, res) => res.send('ok'));                                              // liveness
 app.get('/readyz', (_req, res) => (store.ready() ? res.send('ready') : res.status(503).send('db not ready'))); // readiness

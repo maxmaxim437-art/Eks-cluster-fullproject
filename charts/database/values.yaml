@@ -1,0 +1,102 @@
+# ---------------------------------------------------------------------
+# Global values are shared with the Bitnami subchart.
+# Bitnami stopped publishing versioned images under docker.io/bitnami,
+# so we pull the archived ones from bitnamilegacy. This is fine for a
+# study project (no security updates). Remove this when you move to
+# another solution (RDS / CloudNativePG / official postgres image).
+# ---------------------------------------------------------------------
+global:
+  security:
+    allowInsecureImages: true
+
+# Everything under "postgresql:" overrides the Bitnami chart's values.
+postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+
+  auth:
+    username: archuser
+    database: archdb
+    # TEMPORARY placeholders (letters/digits only - the backend builds a URL from them).
+    # Section 9 (ExternalSecrets) replaces these with an existing Secret,
+    # so no real password ever lives in Git.
+    password: "ChangeMeUser123"
+    postgresPassword: "ChangeMeAdmin123"
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: gp3
+      size: 10Gi
+    resources:
+      requests: { cpu: 250m, memory: 512Mi }
+      limits:   { cpu: 1000m, memory: 1Gi }
+    # DB pods may land on tainted db-nodes ...
+    tolerations:
+      - key: workload
+        operator: Equal
+        value: database
+        effect: NoSchedule
+    # ... and MUST run on nodes labeled role=db (hard requirement)
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: role
+                  operator: In
+                  values: ["db"]
+
+  # Built-in postgres-exporter sidecar + ServiceMonitor (Section 5)
+  metrics:
+    enabled: true
+    image:
+      repository: bitnamilegacy/postgres-exporter
+    serviceMonitor:
+      enabled: true     # needs the Prometheus Operator CRDs (kube-prometheus-stack)
+
+# ---------------------------------------------------------------------
+# Backup CronJob (Section 7): pg_dump -> gzip -> aws s3 cp
+# ---------------------------------------------------------------------
+backup:
+  enabled: true
+  schedule: "0 */6 * * *"
+  bucket: my-arch-planner-backups
+  prefix: backups
+  region: eu-central-1
+  # Documentation of the policy; it is ENFORCED by the S3 lifecycle rule (Section 7.2)
+  retentionDays: 90
+
+  # Connection details come from the same Secret the backend uses.
+  secretName: db-credentials
+  secretKeys:
+    username: username
+    password: password
+    host: host
+    port: port
+  dbName: archdb
+
+  # Client image must have the same MAJOR version as the server (PostgreSQL 17).
+  dumpImage: postgres:17-alpine
+  uploadImage: amazon/aws-cli:2.22.0
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    # IRSA (Section 7.2), e.g.:
+    # eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/<backup-role>
+
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  tolerations: []
+  affinity: {}
+
+# Vertical Pod Autoscaler - recommendations only (Section 6.3)
+vpa:
+  enabled: true
+  updateMode: "Off"
+  targetName: ""   # empty = <release>-postgresql

@@ -1,0 +1,29 @@
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    # Without these, Prometheus silently ignores ServiceMonitors / rules that are not
+    # labeled with this Helm release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+grafana:
+  enabled: true
+  # Admin credentials come from an existing Secret, never from this file.
+  # Create it before the first sync:
+  #   kubectl create ns monitoring
+  #   kubectl -n monitoring create secret generic grafana-admin \
+  #     --from-literal=admin-user=admin --from-literal=admin-password='<choose one>'
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
