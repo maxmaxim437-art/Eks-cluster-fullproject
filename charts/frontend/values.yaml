@@ -55,11 +55,22 @@ autoscaling:
   scaleDownStabilizationSeconds: 300
 
 metrics:
-  enabled: false
+  enabled: true
   path: /metrics
   interval: 30s
+  port: 9113                 # nginx-prometheus-exporter
+  statusPort: 8080           # nginx stub_status, must match myapp/frontend/nginx.conf
+  exporter:
+    image: nginx/nginx-prometheus-exporter:1.3.0
+    resources:
+      requests: { cpu: 10m, memory: 16Mi }
+      limits:   { cpu: 100m, memory: 64Mi }
 
 # Vertical Pod Autoscaler - recommendations only (Section 6.3)
 vpa:
   enabled: true
   updateMode: "Off"
+
+# Grafana dashboard, loaded automatically from a ConfigMap (Section 5.3)
+dashboard:
+  enabled: true

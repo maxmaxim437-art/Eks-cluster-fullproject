@@ -1,0 +1,12 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "backend.fullname" . }}-dashboard
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  backend.json: |-
+{{ .Files.Get "dashboards/backend.json" | indent 4 }}
+{{- end }}

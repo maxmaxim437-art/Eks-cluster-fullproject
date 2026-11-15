@@ -15,6 +15,7 @@ roles:
   externalSecrets: arch-planner-external-secrets
   karpenter: arch-planner-karpenter
   dbBackup: arch-planner-db-backup
+  lbController: arch-planner-lb-controller
 
 metricsServer:
   enabled: true
@@ -26,3 +27,5 @@ secrets:
 
 # IAM role of the EC2 nodes that Karpenter creates
 karpenterNodeRole: arch-planner-karpenter-node
+
+vpcId: vpc-0123456789abcdef0        # TODO: filled in after Terraform creates the VPC

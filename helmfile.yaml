@@ -26,6 +26,8 @@ repositories:
     url: https://charts.fairwinds.com/stable
   - name: metrics-server
     url: https://kubernetes-sigs.github.io/metrics-server/
+  - name: eks
+    url: https://aws.github.io/eks-charts
   - name: karpenter
     url: public.ecr.aws/karpenter
     oci: true
@@ -36,38 +38,48 @@ helmDefaults:
   createNamespace: true
   cleanupOnFail: true
 
-# TODO (before the first real deploy): pin a `version:` on every remote chart.
-#   helm search repo <repo>/<chart> --versions | head
-
 releases:
   # ------------------------- platform / infra -------------------------
   - name: kube-prometheus-stack
     namespace: monitoring
     chart: prometheus-community/kube-prometheus-stack
+    version: "93.3.0"
     values:
       - values/monitoring.yaml
 
   - name: external-secrets
     namespace: external-secrets
     chart: external-secrets/external-secrets
+    version: "2.15.0"
     values:
       - values/external-secrets.yaml.gotmpl
 
   - name: external-dns
     namespace: external-dns
     chart: external-dns/external-dns
+    version: "1.23.0"
     values:
       - values/external-dns.yaml.gotmpl
+
+  # Creates the ALB for every Ingress with className "alb". The frontend waits for it.
+  - name: aws-load-balancer-controller
+    namespace: kube-system
+    chart: eks/aws-load-balancer-controller
+    version: "3.6.3"
+    values:
+      - values/aws-lb-controller.yaml.gotmpl
 
   - name: vpa
     namespace: vpa
     chart: fairwinds-stable/vpa
+    version: "5.2.0"
     values:
       - values/vpa.yaml
 
   - name: karpenter
     namespace: karpenter
     chart: karpenter/karpenter
+    version: "1.15.2"
     values:
       - values/karpenter.yaml.gotmpl
 
@@ -76,6 +88,7 @@ releases:
   - name: metrics-server
     namespace: kube-system
     chart: metrics-server/metrics-server
+    version: "3.14.0"
     condition: metricsServer.enabled
     values:
       - values/metrics-server.yaml
@@ -109,6 +122,7 @@ releases:
     chart: ./charts/frontend
     needs:
       - production/backend
+      - kube-system/aws-load-balancer-controller
     values:
       - values/frontend.yaml.gotmpl
 

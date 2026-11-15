@@ -101,3 +101,7 @@ vpa:
   enabled: true
   updateMode: "Off"
   targetName: ""   # empty = <release>-postgresql
+
+# Grafana dashboard, loaded automatically from a ConfigMap (Section 5.3)
+dashboard:
+  enabled: true

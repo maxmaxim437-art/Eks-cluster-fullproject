@@ -1,0 +1,13 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboard
+  labels:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    grafana_dashboard: "1"
+data:
+  database.json: |-
+{{ .Files.Get "dashboards/database.json" | indent 4 }}
+{{- end }}

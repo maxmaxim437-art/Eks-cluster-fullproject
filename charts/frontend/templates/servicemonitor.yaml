@@ -10,7 +10,7 @@ spec:
     matchLabels:
       {{- include "frontend.selectorLabels" . | nindent 6 }}
   endpoints:
-    - port: http
+    - port: metrics
       path: {{ .Values.metrics.path }}
       interval: {{ .Values.metrics.interval }}
 {{- end }}

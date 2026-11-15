@@ -87,3 +87,7 @@ metrics:
 vpa:
   enabled: true
   updateMode: "Off"
+
+# Grafana dashboard, loaded automatically from a ConfigMap (Section 5.3)
+dashboard:
+  enabled: true

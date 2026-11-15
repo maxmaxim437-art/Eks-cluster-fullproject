@@ -29,6 +29,19 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        {{- if .Values.metrics.enabled }}
+        # Reads nginx stub_status (127.0.0.1:{{ .Values.metrics.statusPort }}, see myapp/frontend/nginx.conf)
+        # and serves it to Prometheus on :{{ .Values.metrics.port }}/metrics
+        - name: nginx-exporter
+          image: {{ .Values.metrics.exporter.image | quote }}
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:{{ .Values.metrics.statusPort }}/stub_status
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+          resources:
+            {{- toYaml .Values.metrics.exporter.resources | nindent 12 }}
+        {{- end }}
       {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
