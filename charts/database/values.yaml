@@ -18,13 +18,14 @@ postgresql:
       repository: bitnamilegacy/os-shell
 
   auth:
-    username: archuser
+    username: archuser            # must match the "username" in the AWS secret
     database: archdb
-    # TEMPORARY placeholders (letters/digits only - the backend builds a URL from them).
-    # Section 9 (ExternalSecrets) replaces these with an existing Secret,
-    # so no real password ever lives in Git.
-    password: "ChangeMeUser123"
-    postgresPassword: "ChangeMeAdmin123"
+    # No password in Git: Bitnami reads it from the Secret that ExternalSecrets creates
+    # (charts/platform -> db-credentials).
+    existingSecret: db-credentials
+    secretKeys:
+      userPasswordKey: password
+    enablePostgresUser: false     # the secret has no admin ("postgres") password
 
   primary:
     persistence:

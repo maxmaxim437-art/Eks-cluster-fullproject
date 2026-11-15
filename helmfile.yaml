@@ -91,6 +91,7 @@ releases:
       - external-secrets/external-secrets
       - monitoring/kube-prometheus-stack
       - vpa/vpa
+      - production/platform
     values:
       - values/database.yaml.gotmpl
 

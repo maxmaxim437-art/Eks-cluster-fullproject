@@ -17,7 +17,7 @@ roles:
   dbBackup: arch-planner-db-backup
 
 metricsServer:
-  enabled: false
+  enabled: true
 
 # AWS Secrets Manager secret names (created in the infrastructure phase)
 secrets:
