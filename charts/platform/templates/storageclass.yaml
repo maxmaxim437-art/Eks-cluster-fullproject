@@ -1,0 +1,16 @@
+# EKS only ships "gp2". The database and Prometheus ask for "gp3" (cheaper, faster, EBS CSI driver).
+# WaitForFirstConsumer: the disk is created in the AZ where the Pod is scheduled.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+  labels:
+    {{- include "platform.labels" . | nindent 4 }}
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  fsType: ext4
+  encrypted: "true"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete

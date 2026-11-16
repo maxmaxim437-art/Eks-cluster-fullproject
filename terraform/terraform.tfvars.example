@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars and edit. Everything has a default, so this file is optional.
+region       = "eu-central-1"
+cluster_name = "arch-planner"
+
+# Only if you have a domain:
+# domain              = "example.com"
+# create_route53_zone = true

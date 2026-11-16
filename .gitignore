@@ -1,17 +1,5 @@
-# Node
-node_modules/
-
-# Helm: pulled by "helm dependency update" (Chart.lock stays in Git)
-charts/*/charts/*.tgz
-
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.*
-crash.log
-*.tfvars.secret
-
-# Misc
-*.zip
-.env
-.DS_Store
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/crash.log
