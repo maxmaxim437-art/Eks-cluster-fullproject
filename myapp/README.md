@@ -1,30 +1,37 @@
-# Architecture Planner
+# Architecture Planner (application)
 
-Drag-and-drop AWS / Kubernetes architecture canvas with user accounts.
+A drag-and-drop canvas for designing AWS / Kubernetes architectures, with user accounts and saved diagrams.
 
-- `frontend/` React + Vite + React Flow, served by nginx (proxies `/api` to the `backend` Service)
-- `backend/`  Node + Express, JWT login, bcrypt password hashing. Storage is in-memory unless `DATABASE_URL` is set
-- `k8s/app.yaml` Deployments, Services and an ALB Ingress for EKS
+| Part | Stack |
+|---|---|
+| `frontend/` | React, Vite, React Flow; served by nginx, which proxies `/api` to the backend |
+| `backend/` | Node.js, Express, JWT login, bcrypt password hashing, PostgreSQL storage |
 
-## Local dev (no database needed)
-    cd backend  && npm install && npm run dev      # :3000
-    cd frontend && npm install && npm run dev      # :5173  (proxies /api to :3000)
-Open http://localhost:5173, create an account, build a diagram, Save, Export image.
-Without `DATABASE_URL`, accounts and diagrams live in memory and disappear when the backend restarts.
+## API
+| Route | Purpose |
+|---|---|
+| `GET /healthz`, `GET /readyz` | Liveness / readiness probes |
+| `GET /api/info` | Service info |
+| `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` | Authentication |
+| `GET/POST/PUT/DELETE /api/diagrams` | Diagram CRUD (per user) |
+| `GET /metrics` | Prometheus metrics (`prom-client`, request duration histogram) |
+
+## Local development (no database needed)
+```bash
+cd backend  && npm install && npm run dev      # http://localhost:3000
+cd frontend && npm install && npm run dev      # http://localhost:5173 (proxies /api to :3000)
+```
+Without `DATABASE_URL` the backend keeps users and diagrams in memory (lost on restart).
 
 ## Environment variables (backend)
 | Name | Purpose |
 |---|---|
-| `JWT_SECRET` | Signs login tokens. Required in production (random per start if unset) |
-| `DATABASE_URL` | PostgreSQL connection string. Unset = in-memory mode |
+| `JWT_SECRET` | Signs login tokens (required in production) |
+| `DATABASE_URL` | PostgreSQL connection string; unset = in-memory mode |
 | `PORT` | Default 3000 |
 | `TRUST_PROXY` | Number of proxies in front of the backend, default 2 (ALB + nginx) |
 
-## EKS
-    kubectl create secret generic arch-auth --from-literal=jwt="$(openssl rand -hex 32)"
-    kubectl apply -f k8s/app.yaml
+Tables `users` and `diagrams` are created automatically on start.
 
-## Adding the database later (Bitnami PostgreSQL)
-    helm install postgres oci://registry-1.docker.io/bitnamicharts/postgresql --set auth.database=archdb
-    kubectl create secret generic arch-db --from-literal=url='postgresql://postgres:<PASSWORD>@postgres-postgresql:5432/archdb'
-Uncomment the `DATABASE_URL` block in `k8s/app.yaml` and re-apply. Tables `users` and `diagrams` are created automatically.
+## Deployment
+The app is deployed to EKS with the Helm charts in `../charts` (see the root README).

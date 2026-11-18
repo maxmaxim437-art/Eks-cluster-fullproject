@@ -27,7 +27,7 @@ spec:
           annotations:
             summary: Backend target is down in Prometheus
         - alert: DatabaseDown
-          expr: pg_up == 0
+          expr: (pg_up == 0) or absent(pg_up)
           for: {{ .Values.alerts.database.for }}
           labels:
             severity: critical

@@ -20,7 +20,7 @@ kubectl logs job/manual-backup-test -n production -c upload
 aws s3 ls s3://<bucket>/backups/ --human-readable
 ```
 
-## Restore into a fresh, temporary database (restore test)
+## Restore into a fresh, temporary database
 Always restore into a NEW instance first. A backup that was never restored is not a backup.
 
 ```bash

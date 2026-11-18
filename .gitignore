@@ -1,5 +1,22 @@
+# Terraform
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/terraform.tfvars
 terraform/crash.log
+terraform/tfplan
+*.tfplan
+
+# Node
+node_modules/
+
+# Helm downloaded dependencies (rebuild with: helm dependency build charts/database)
+charts/*/charts/*.tgz
+
+# Local / secrets
+.env
+*.pem
+*.key
+
+# Local leftovers
+Screenshots/_duplicates/
