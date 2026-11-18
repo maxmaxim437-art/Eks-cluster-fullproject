@@ -8,7 +8,7 @@ The platform runs a web application consisting of:
 - **Backend:** Node.js / Express
 - **Database:** PostgreSQL
 
-The infrastructure was deployed, tested, and destroyed on AWS in the `eu-central-1` region on November 18, 2026.
+The infrastructure was deployed, tested, and destroyed on AWS in the `eu-central-1` region 
 
 Screenshots and test evidence are available in the [`Screenshots/`](Screenshots) directory.
 
